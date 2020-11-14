@@ -1,3 +1,4 @@
+import java.util.PriorityQueue;
 
 /**
  * Although this class has a history of several years,
@@ -41,15 +42,20 @@ public class HuffProcessor {
 	 *            Buffered bit stream writing to the output file.
 	 */
 	public void compress(BitInputStream in, BitOutputStream out){
+		/*
+		int[] counts = readForCounts(in);
+		HuffNode root = makeTreeFromCounts(counts);
+		String[] codings = makeCodingsFromTree(root);
+		out.writeBits(BITS_PER_INT,HUFF_TREE);
+		writeHeader(root,out);
 
-		// remove all this code when implementing compress
-		while (true){
-			int val = in.readBits(BITS_PER_WORD);
-			if (val == -1) break;
-			out.writeBits(BITS_PER_WORD, val);
-		}
+		in.reset();
+		writeCompressedBits(codings,in,out);
 		out.close();
+
+		 */
 	}
+
 	/**
 	 * Decompresses a file. Output file must be identical bit-by-bit to the
 	 * original.
@@ -65,14 +71,64 @@ public class HuffProcessor {
 		if (magic != HUFF_TREE) {
 			throw new HuffException("invalid magic number "+magic);
 		}
-		// remove all code below this point for P7
+		if (in.readBits(BITS_PER_INT) == -1) {
+			throw new HuffException("invalid magic number "+magic);
+		}
+		HuffNode root = readTree(in);
+		HuffNode current = root;
+		while (true) {
+			int bits = in.readBits(1);
+			if (bits == -1) {
+				throw new HuffException("bad input, no PSEUDO_EOF");
+			}
+			else {
 
-		out.writeBits(BITS_PER_INT,magic);
-		while (true){
-			int val = in.readBits(BITS_PER_WORD);
-			if (val == -1) break;
-			out.writeBits(BITS_PER_WORD, val);
+				if (bits == 0){
+					current = current.myLeft;
+				}
+				else{
+					current = current.myRight;
+				}
+
+				if (isLeaf(current)) {
+					if (current.myValue == PSEUDO_EOF){
+						break;
+					}
+					else {
+						out.writeBits(BITS_PER_WORD,current.myValue);
+						current = root;
+					}
+				}
+			}
 		}
 		out.close();
+	}
+
+	public HuffNode readTree(BitInputStream in)
+	{
+		if (in.readBits(BITS_PER_INT) == -1) {
+			throw new HuffException("invalid magic number "+in.readBits(BITS_PER_INT));
+		}
+		int bit= in.readBits(BITS_PER_INT);
+		if(bit == -1){
+			throw new IndexOutOfBoundsException();
+		}
+		if(bit == 0)
+		{
+			HuffNode left = readTree(in);
+			HuffNode right = readTree(in);
+			return new HuffNode(0,0,left,right);
+		}
+		else {
+			int value = in.readBits(BITS_PER_WORD+1);
+			return new HuffNode(value,0,null,null);
+		}
+
+	}
+	public boolean isLeaf(HuffNode huff){
+		if(huff==null){
+			return false;
+		}
+		return huff.myRight==null && huff.myLeft ==null;
 	}
 }
