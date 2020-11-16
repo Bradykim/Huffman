@@ -71,9 +71,7 @@ public class HuffProcessor {
 		if (magic != HUFF_TREE) {
 			throw new HuffException("invalid magic number "+magic);
 		}
-		if (in.readBits(BITS_PER_INT) == -1) {
-			throw new HuffException("invalid magic number "+magic);
-		}
+
 		HuffNode root = readTree(in);
 		HuffNode current = root;
 		while (true) {
@@ -90,7 +88,7 @@ public class HuffProcessor {
 					current = current.myRight;
 				}
 
-				if (isLeaf(current)) {
+				if (current.myRight==null && current.myLeft ==null) {
 					if (current.myValue == PSEUDO_EOF){
 						break;
 					}
@@ -104,7 +102,7 @@ public class HuffProcessor {
 		out.close();
 	}
 
-	public HuffNode readTree(BitInputStream in)
+	private HuffNode readTree(BitInputStream in)
 	{
 		if (in.readBits(BITS_PER_INT) == -1) {
 			throw new HuffException("invalid magic number "+in.readBits(BITS_PER_INT));
@@ -125,10 +123,5 @@ public class HuffProcessor {
 		}
 
 	}
-	public boolean isLeaf(HuffNode huff){
-		if(huff==null){
-			return false;
-		}
-		return huff.myRight==null && huff.myLeft ==null;
-	}
+
 }
