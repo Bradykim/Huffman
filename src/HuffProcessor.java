@@ -80,21 +80,15 @@ public class HuffProcessor {
 				throw new HuffException("bad input, no PSEUDO_EOF");
 			}
 			else {
+				if (bits == 0) current = current.myLeft;
+				else current = current.myRight;
 
-				if (bits == 0)
-					current = current.myLeft;
-
-				else
-					current = current.myRight;
-
-
-				if (current.myLeft==null && current.myRight ==null) {
-					if (current.myValue == PSEUDO_EOF){
-						break;
-					}
+				if (current.myLeft==null && current.myRight == null) {
+					if (current.myValue == PSEUDO_EOF)
+						break;   // out of loop
 					else {
 						out.writeBits(BITS_PER_WORD,current.myValue);
-						current = root;
+						current = root; // start back after leaf
 					}
 				}
 			}
@@ -105,7 +99,7 @@ public class HuffProcessor {
 	private HuffNode readTree(BitInputStream in)
 	{
 
-		int bit= in.readBits(BITS_PER_INT);
+		int bit= in.readBits(1);
 		if(bit == -1){
 			throw new HuffException("wrong input");
 		}
