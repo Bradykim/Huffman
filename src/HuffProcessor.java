@@ -81,14 +81,14 @@ public class HuffProcessor {
 			}
 			else {
 
-				if (bits == 0){
+				if (bits == 0)
 					current = current.myLeft;
-				}
-				else{
-					current = current.myRight;
-				}
 
-				if (current.myRight==null && current.myLeft ==null) {
+				else
+					current = current.myRight;
+
+
+				if (current.myLeft==null && current.myRight ==null) {
 					if (current.myValue == PSEUDO_EOF){
 						break;
 					}
@@ -104,12 +104,10 @@ public class HuffProcessor {
 
 	private HuffNode readTree(BitInputStream in)
 	{
-		if (in.readBits(BITS_PER_INT) == -1) {
-			throw new HuffException("invalid magic number "+in.readBits(BITS_PER_INT));
-		}
+
 		int bit= in.readBits(BITS_PER_INT);
 		if(bit == -1){
-			throw new IndexOutOfBoundsException();
+			throw new HuffException("wrong input");
 		}
 		if(bit == 0)
 		{
