@@ -141,7 +141,7 @@ public class HuffProcessor {
 			}
 			store[i]++;
 		}
-		store[1] = PSEUDO_EOF;
+		store[PSEUDO_EOF] = 1;
 		return store;
 
 	}
