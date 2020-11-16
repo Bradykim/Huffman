@@ -58,18 +58,32 @@ public class HuffProcessor {
 
 	private void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out)
 	{
-
+		in.reset();
+		while(true){
+			int i = in.readBits(BITS_PER_WORD);
+			if(i==-1){
+				break;
+			}
+			String st = codings[i];
+			out.writeBits(st.length(),Integer.parseInt(st,2));
+		}
+		String c = codings[PSEUDO_EOF];
+		out.writeBits(c.length(),Integer.parseInt(c,2));
 	}
 
 	private void writeHeader(HuffNode root, BitOutputStream out)
 	{
 		if(root.myLeft==null && root.myRight==null)
 		{
-			out.write(1);
+			out.writeBits(1,1);
+			out.writeBits(BITS_PER_WORD+1,root.myValue);
 		}
-		out.write(0);
-		writeHeader(root.myLeft,out);
-		writeHeader(root.myRight,out);
+		else{
+			out.writeBits(1,0);
+			writeHeader(root.myLeft,out);
+			writeHeader(root.myRight,out);
+		}
+
 
 	}
 
@@ -78,7 +92,7 @@ public class HuffProcessor {
 		PriorityQueue<HuffNode> pq = new PriorityQueue<>();
 
 
-		for(int index = counts.length; index>=0; index--) {
+		for(int index =0; index< counts.length; index++) {
 			if(counts[index]>0)
 			{
 				pq.add(new HuffNode(index,counts[index],null,null));
@@ -105,9 +119,6 @@ public class HuffProcessor {
 	}
 	private void codingHelper(HuffNode root, String path, String[] arr)
 	{
-		if(root==null){
-			return;
-		}
 		if(root.myLeft==null && root.myRight ==null){
 			arr[root.myValue] = path;
 			return;
@@ -123,8 +134,14 @@ public class HuffProcessor {
 	private int[] readForCounts(BitInputStream in)
 	{
 		int[] store = new int[ALPH_SIZE+1];
+		while(true){
+			int i = in.readBits(BITS_PER_WORD);
+			if(i==-1){
+				break;
+			}
+			store[i]++;
+		}
 		store[1] = PSEUDO_EOF;
-		in.readBits(BITS_PER_WORD);
 		return store;
 
 	}
